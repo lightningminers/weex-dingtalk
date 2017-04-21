@@ -1,0 +1,7 @@
+[ignore]
+
+.*/build/.*
+.*/dist/.*
+
+[libs]
+flow
