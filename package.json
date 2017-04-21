@@ -28,6 +28,6 @@
       "rollup-watch": "^3.2.2"
   },
   "dependencies": {
-    "weex-dingtalk-require": "^0.0.2"
+    "weex-dingtalk-require": "^0.0.1"
   }
 }
