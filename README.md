@@ -101,3 +101,25 @@ weex-dingtalk只提供了少许api来完成钉钉客户端js-api的使用，有�
 * off 注销一个事件（与H5中的removeEventListener保持一致）
 
 其他API的具体使用方法请参考 [https://open-doc.dingtalk.com/doc2/detail?spm=0.0.0.0.O1cH5b&treeId=171&articleId=104906&docType=1](https://open-doc.dingtalk.com/doc2/detail?spm=0.0.0.0.O1cH5b&treeId=171&articleId=104906&docType=1)
+
+### 降级H5之后如何使用
+
+如果你的Weex应用被降级到了H5，那么在你的应用.html文件中，自行引入Dingtalk.js，这个文件的网络地址可以在`钉钉开放平台->客户端接入`中获取，一定要保证你引入地方在你的业务bundle.js之前。
+
+为了达到让你的应用可以同时使用两种环境下的js-api，你应该继续使用 `import dingtalk from 'weex-dingtalk'` 的方式来引入模块，在这个模块中会自动判断环境给你导出相应的SDK模块。
+
+H5环境：
+
+```JavaScript
+
+import dingtalk from 'weex-dingtalk';
+
+dingtalk.ready(function(){
+  const dd = dingtalk.apis;
+  // 设置导航
+  dd.biz.navigation.setTitle({
+      title: 'icepy'
+  });
+});
+
+```
