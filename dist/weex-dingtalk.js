@@ -61,15 +61,15 @@ function ios_exec(exec, config) {
  * Created by xiangwenwen on 2017/3/24.
  */
 
-var platform$1 = weex.config.env.platform;
+var platform$2 = weex.config.env.platform;
 
 var nativeExec = weex.requireModule('nuvajs-exec').exec;
 
 function exec(config) {
-    if (platform$1 === 'iOS') {
+    if (platform$2 === 'iOS') {
         ios_exec(nativeExec, config);
     } else {
-        if (platform$1 === 'android') {
+        if (platform$2 === 'android') {
             android_exec(nativeExec, config);
         }
     }
@@ -84,40 +84,40 @@ var requireStack = [];
 var inProgressModules = {};
 
 function build(__nuva_module__) {
-    var factory = __nuva_module__.factory;
-    __nuva_module__.__nuva_exports__ = {};
-    delete __nuva_module__.factory;
-    factory(__nuva_require__, __nuva_module__.__nuva_exports__, __nuva_module__);
-    return __nuva_module__.__nuva_exports__;
+  var factory = __nuva_module__.factory;
+  __nuva_module__.__nuva_exports__ = {};
+  delete __nuva_module__.factory;
+  factory(__nuva_require__, __nuva_module__.__nuva_exports__, __nuva_module__);
+  return __nuva_module__.__nuva_exports__;
 }
 function __nuva_require__(id) {
-    if (!__nuva_modules__[id]) {
-        throw '__nuva_module__ ' + id + ' not found';
-    } else if (id in inProgressModules) {
-        var cycle = requireStack.slice(inProgressModules[id]).join('->') + '->' + id;
-        throw 'Cycle in require graph: ' + cycle;
+  if (!__nuva_modules__[id]) {
+    throw '__nuva_module__ ' + id + ' not found';
+  } else if (id in inProgressModules) {
+    var cycle = requireStack.slice(inProgressModules[id]).join('->') + '->' + id;
+    throw 'Cycle in require graph: ' + cycle;
+  }
+  if (__nuva_modules__[id].factory) {
+    try {
+      inProgressModules[id] = requireStack.length;
+      requireStack.push(id);
+      return build(__nuva_modules__[id]);
+    } finally {
+      delete inProgressModules[id];
+      requireStack.pop();
     }
-    if (__nuva_modules__[id].factory) {
-        try {
-            inProgressModules[id] = requireStack.length;
-            requireStack.push(id);
-            return build(__nuva_modules__[id]);
-        } finally {
-            delete inProgressModules[id];
-            requireStack.pop();
-        }
-    }
-    return __nuva_modules__[id].__nuva_exports__;
+  }
+  return __nuva_modules__[id].__nuva_exports__;
 }
 
 function __nuva_define__(id, factory) {
-    if (__nuva_modules__[id]) {
-        throw 'module ' + id + ' already defined';
-    }
-    __nuva_modules__[id] = {
-        id: id,
-        factory: factory
-    };
+  if (__nuva_modules__[id]) {
+    throw 'module ' + id + ' already defined';
+  }
+  __nuva_modules__[id] = {
+    id: id,
+    factory: factory
+  };
 }
 
 /**
@@ -126,71 +126,71 @@ function __nuva_define__(id, factory) {
 
 var cat = {};
 var EventEmitter = {
-    on: function on(event, fun) {
-        var cbs = cat[event];
-        cbs ? cbs.push(fun) : cat[event] = [];
-        if (!cbs) {
-            cat[event].push(fun);
-        }
-    },
-    off: function off(event, fun) {
-        var cbs = cat[event];
-        if (!cbs) {
-            return false;
-        }
-        if (!event && !fun) {
-            cat = {};
-            return true;
-        }
-        if (event && !fun) {
-            cat[event] = null;
-            return true;
-        }
-        var cb = void 0;
-        var i = cbs.length;
-        while (i--) {
-            cb = cbs[i];
-            if (cb === fun || cb.fun === fun) {
-                cbs.splice(i, 1);
-                break;
-            }
-        }
-        return true;
-    },
-    once: function once(event, fun) {
-        function _on() {
-            EventEmitter.off(event, _on);
-            fun.apply(this, arguments);
-        }
-        _on.fun = fun;
-        EventEmitter.on(event, _on);
-    },
-    emit: function emit(event) {
-        var isString = typeof event === 'string';
-        if (!isString) {
-            return;
-        }
-        var cbs = cat[event];
-        var args = toArray(arguments, 1);
-        if (cbs) {
-            var i = 0;
-            var j = cbs.length;
-            for (; i < j; i++) {
-                var cb = cbs[i];
-                cb.apply(this, args);
-            }
-        }
+  on: function on(event, fun) {
+    var cbs = cat[event];
+    cbs ? cbs.push(fun) : cat[event] = [];
+    if (!cbs) {
+      cat[event].push(fun);
     }
+  },
+  off: function off(event, fun) {
+    var cbs = cat[event];
+    if (!cbs) {
+      return false;
+    }
+    if (!event && !fun) {
+      cat = {};
+      return true;
+    }
+    if (event && !fun) {
+      cat[event] = null;
+      return true;
+    }
+    var cb = void 0;
+    var i = cbs.length;
+    while (i--) {
+      cb = cbs[i];
+      if (cb === fun || cb.fun === fun) {
+        cbs.splice(i, 1);
+        break;
+      }
+    }
+    return true;
+  },
+  once: function once(event, fun) {
+    function _on() {
+      EventEmitter.off(event, _on);
+      fun.apply(this, arguments);
+    }
+    _on.fun = fun;
+    EventEmitter.on(event, _on);
+  },
+  emit: function emit(event) {
+    var isString = typeof event === 'string';
+    if (!isString) {
+      return;
+    }
+    var cbs = cat[event];
+    var args = toArray(arguments, 1);
+    if (cbs) {
+      var i = 0;
+      var j = cbs.length;
+      for (; i < j; i++) {
+        var cb = cbs[i];
+        cb.apply(this, args);
+      }
+    }
+  }
 };
 
 function toArray(list, index) {
-    var _index = index || 0;
-    var i = list.length - _index;
-    var _array = new Array(i);
-    while (i--) {
-        _array[i] = list[i + _index];
-    }
-    return _array;
+  var _index = index || 0;
+  var i = list.length - _index;
+  var _array = new Array(i);
+  while (i--) {
+    _array[i] = list[i + _index];
+  }
+  return _array;
 }
 
 /**
@@ -198,127 +198,132 @@ function toArray(list, index) {
  */
 
 function parseModules(map) {
-    for (var name in map) {
-        var methods = map[name];
-        (function (_name, _methods) {
-            __nuva_define__(_name, function (__nuva_require__$$1, __nuva_exports__, __nuva_module__) {
-                var p = {};
-                p._name = _name;
-                for (var i in _methods) {
-                    var action = _methods[i];
-                    p[action] = function (_action) {
-                        return function (params) {
-                            if (!params) {
-                                params = {};
-                            }
-                            var onSuccess = params.onSuccess;
-                            var onFail = params.onFail;
-                            delete params.onSuccess;
-                            delete params.onFail;
-                            delete params.onCancel;
-                            var config = {
-                                body: {
-                                    plugin: _name,
-                                    action: _action,
-                                    args: params
-                                },
-                                onSuccess: onSuccess,
-                                onFail: onFail
-                            };
-                            return exec(config);
-                        };
-                    }(action);
-                }
-                __nuva_module__.__nuva_exports__ = p;
-            });
-        })(name, methods);
-    }
+  for (var name in map) {
+    var methods = map[name];
+    (function (_name, _methods) {
+      __nuva_define__(_name, function (__nuva_require__$$1, __nuva_exports__, __nuva_module__) {
+        var p = {};
+        p._name = _name;
+        for (var i in _methods) {
+          var action = _methods[i];
+          p[action] = function (_action) {
+            return function (params) {
+              if (!params) {
+                params = {};
+              }
+              var onSuccess = params.onSuccess;
+              var onFail = params.onFail;
+              delete params.onSuccess;
+              delete params.onFail;
+              delete params.onCancel;
+              var config = {
+                body: {
+                  plugin: _name,
+                  action: _action,
+                  args: params
+                },
+                onSuccess: onSuccess,
+                onFail: onFail
+              };
+              return exec(config);
+            };
+          }(action);
+        }
+        __nuva_module__.__nuva_exports__ = p;
+      });
+    })(name, methods);
+  }
 }
 
 /**
  * Created by xiangwenwen on 2017/3/24.
  */
 
-var globalEvent = weex.requireModule('globalEvent');
+var platform$1 = weex.config.env.platform;
+
+var globalEvent = {};
+if (platform$1 !== 'Web') {
+  globalEvent = weex.requireModule('globalEvent');
+}
 
 function rtFunc(method) {
-    return function (cb) {
-        var config = {
-            body: {
-                plugin: 'runtime',
-                action: method,
-                args: {}
-            },
-            onSuccess: function onSuccess(response) {
-                if (typeof cb === 'function') {
-                    cb(response);
-                }
-            },
-            onFail: function onFail() {},
-            context: null
-        };
-        exec(config);
+  return function (cb) {
+    var config = {
+      body: {
+        plugin: 'runtime',
+        action: method,
+        args: {}
+      },
+      onSuccess: function onSuccess(response) {
+        if (typeof cb === 'function') {
+          cb(response);
+        }
+      },
+      onFail: function onFail() {},
+      context: null
     };
+    exec(config);
+  };
 }
 
 function initDingtalkRequire(cb) {
-    rtFunc('getModules')(cb);
+  rtFunc('getModules')(cb);
 }
 
 var nuva = {
-    getModules: null,
-    isReady: false,
-    define: __nuva_define__,
-    require: function require(id) {
-        if (!id) {
-            return exec;
-        } else {
-            return __nuva_require__(id);
-        }
-    },
-    runtime: {
-        info: rtFunc('info'),
-        _interceptBackButton: rtFunc('interceptBackButton'),
-        _interceptNavTitle: rtFunc('interceptNavTitle'),
-        _recoverNavTitle: rtFunc('recoverNavTitle'),
-        _getModules: rtFunc('getModules')
-    },
-    init: function init() {
-        initDingtalkRequire(function (response) {
-            if (response) {
-                parseModules(response);
-                nuva.isReady = true;
-                nuva.getModules = response;
-                EventEmitter.emit('__nuva_ready__');
-            }
+  getModules: null,
+  isReady: false,
+  define: __nuva_define__,
+  require: function require(id) {
+    if (!id) {
+      return exec;
+    } else {
+      return __nuva_require__(id);
+    }
+  },
+  runtime: {
+    info: rtFunc('info'),
+    _interceptBackButton: rtFunc('interceptBackButton'),
+    _interceptNavTitle: rtFunc('interceptNavTitle'),
+    _recoverNavTitle: rtFunc('recoverNavTitle'),
+    _getModules: rtFunc('getModules')
+  },
+  init: function init() {
+    initDingtalkRequire(function (response) {
+      if (response) {
+        parseModules(response);
+        nuva.isReady = true;
+        nuva.getModules = response;
+        EventEmitter.emit('__nuva_ready__');
+      }
+    });
+  },
+  ready: function ready(cb) {
+    if (nuva.isReady) {
+      if (typeof cb === 'function') {
+        cb();
+      }
+    } else {
+      if (typeof cb === 'function') {
+        EventEmitter.once('__nuva_ready__', function () {
+          cb();
         });
-    },
-    ready: function ready(cb) {
-        if (nuva.isReady) {
-            if (typeof cb === 'function') {
-                cb();
-            }
-        } else {
-            if (typeof cb === 'function') {
-                EventEmitter.once('__nuva_ready__', function () {
-                    cb();
-                });
-            }
-        }
-    },
-    on: function on(type, handler) {
-        globalEvent.addEventListener(type, function (e) {
-            var event = {
-                preventDefault: function preventDefault() {
-                    console.warn('当前环境不支持 preventDefault');
-                },
-                detail: e
-            };
-            handler.call(this, event);
-        });
-    },
-    off: globalEvent.removeEventListener,
-    EventEmitter: EventEmitter
+      }
+    }
+  },
+  on: function on(type, handler) {
+    globalEvent.addEventListener(type, function (e) {
+      var event = {
+        preventDefault: function preventDefault() {
+          console.warn('当前环境不支持 preventDefault');
+        },
+        detail: e
+      };
+      handler.call(this, event);
+    });
+  },
+  off: globalEvent.removeEventListener,
+  EventEmitter: EventEmitter
 };
 
 /**
