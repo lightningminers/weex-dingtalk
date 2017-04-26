@@ -1,8 +1,8 @@
 {
   "name": "weex-dingtalk",
   "version": "0.0.1",
-  "description": "dingtalk weex js api sdk",
-  "main": "dist/weex-dingtalk.js",
+  "description": "Dingtalk Weex Js Api SDK",
+  "main": "dist/weex-dingtalk-min.js",
   "scripts": {
       "test": "echo \"Error: no test specified\" && exit 1",
       "es5": "node ./build/build.js build",
@@ -28,6 +28,6 @@
       "rollup-watch": "^3.2.2"
   },
   "dependencies": {
-    "weex-dingtalk-require": "^0.0.1"
+    "weex-dingtalk-require": "^0.0.2"
   }
 }
