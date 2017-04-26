@@ -2,6 +2,7 @@
 /* @flow */
 
 import initNativeEvent from './nativeEvent.js';
+import initApis from './apis.js';
 
 function initWebDingtalkSDK () : Object {
   const GLOBALWINDOW:GLOBALWINDOW = (function(){
@@ -14,6 +15,7 @@ function initWebDingtalkSDK () : Object {
     throw new Error()
   }
   initNativeEvent(GLOBALWINDOW.dd);
+  initApis(GLOBALWINDOW.dd);
   return GLOBALWINDOW.dd;
 }
 

@@ -5,30 +5,30 @@
  */
 
 function android_exec(exec, config) {
-    var body = config.body;
-    var win = config.onSuccess;
-    var fail = config.onFail;
-    var context = config.context;
-    var STATUS_NO_RESULT = '0';
-    var STATUS_OK = '1';
-    var STATUS_ERROR = '2';
-    if (exec && typeof exec === 'function') {
-        exec(body, function (response) {
-            if (typeof response !== "undefined" && response.__status__) {
-                var status = response.__status__;
-                var message = response.__message__;
-                if (STATUS_OK === status) {
-                    win && win.call(context, message);
-                } else if (STATUS_ERROR === status) {
-                    fail && fail.call(context, message);
-                }
-            } else {
-                fail && fail.call('-1', "");
-            }
-        });
-    } else {
+  var body = config.body;
+  var win = config.onSuccess;
+  var fail = config.onFail;
+  var context = config.context;
+  var STATUS_NO_RESULT = '0';
+  var STATUS_OK = '1';
+  var STATUS_ERROR = '2';
+  if (exec && typeof exec === 'function') {
+    exec(body, function (response) {
+      if (typeof response !== "undefined" && response.__status__) {
+        var status = response.__status__;
+        var message = response.__message__;
+        if (STATUS_OK === status) {
+          win && win.call(context, message);
+        } else if (STATUS_ERROR === status) {
+          fail && fail.call(context, message);
+        }
+      } else {
         fail && fail.call('-1', "");
-    }
+      }
+    });
+  } else {
+    fail && fail.call('-1', "");
+  }
 }
 
 /**
@@ -36,25 +36,25 @@ function android_exec(exec, config) {
  */
 
 function ios_exec(exec, config) {
-    var body = config.body;
-    var win = config.onSuccess;
-    var fail = config.onFail;
-    var context = config.context;
-    if (exec && typeof exec === 'function') {
-        exec(body, function (response) {
-            if (typeof response !== "undefined") {
-                if ('0' === response.errorCode) {
-                    win && win.call(context, response.result);
-                } else {
-                    fail && fail.call(context, response.result);
-                }
-            } else {
-                fail && fail.call('-1', "");
-            }
-        });
-    } else {
+  var body = config.body;
+  var win = config.onSuccess;
+  var fail = config.onFail;
+  var context = config.context;
+  if (exec && typeof exec === 'function') {
+    exec(body, function (response) {
+      if (typeof response !== "undefined") {
+        if ('0' === response.errorCode) {
+          win && win.call(context, response.result);
+        } else {
+          fail && fail.call(context, response.result);
+        }
+      } else {
         fail && fail.call('-1', "");
-    }
+      }
+    });
+  } else {
+    fail && fail.call('-1', "");
+  }
 }
 
 /**
@@ -63,16 +63,20 @@ function ios_exec(exec, config) {
 
 var platform$2 = weex.config.env.platform;
 
-var nativeExec = weex.requireModule('nuvajs-exec').exec;
+var nativeExec = null;
+if (platform$2 !== 'Web') {
+  nativeExec = weex.requireModule('nuvajs-exec').exec;
+}
 
 function exec(config) {
-    if (platform$2 === 'iOS') {
-        ios_exec(nativeExec, config);
-    } else {
-        if (platform$2 === 'android') {
-            android_exec(nativeExec, config);
-        }
+  var native_exec = nativeExec ? nativeExec : function () {};
+  if (platform$2 === 'iOS') {
+    ios_exec(native_exec, config);
+  } else {
+    if (platform$2 === 'android') {
+      android_exec(native_exec, config);
     }
+  }
 }
 
 /**
@@ -400,8 +404,16 @@ function parseJsApis(jsApis) {
 }
 
 function initNativeEvent(dt) {
-  dt.on = document.addEventListener;
-  dt.off = document.removeEventListener;
+  dt.on = function (type, listener, useCapture) {
+    document.addEventListener(type, listener, useCapture);
+  };
+  dt.off = function (type, listener, useCapture) {
+    document.removeEventListener(type, listener, useCapture);
+  };
+}
+
+function initApis(dt) {
+  dt.apis = dt;
 }
 
 function initWebDingtalkSDK() {
@@ -415,6 +427,7 @@ function initWebDingtalkSDK() {
     throw new Error();
   }
   initNativeEvent(GLOBALWINDOW.dd);
+  initApis(GLOBALWINDOW.dd);
   return GLOBALWINDOW.dd;
 }
 
