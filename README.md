@@ -12,12 +12,14 @@ weex-dingtalk是钉钉开放平台提供在weex环境下使用的SDK，其中实
 
 且看例子：（weex-entry.js）
 
-    import Hello from './Hello.vue';
-    Hello.el = '#app';
-    new Vue(Hello);
-
+```JavaScript
+  import Hello from './Hello.vue';
+  Hello.el = '#app';
+  new Vue(Hello);
+```
 业务Hello.vue：
 
+```Vue
     <template>
         <div class="wrapper">
             <text class="title">Hello icepy</text>
@@ -79,6 +81,7 @@ weex-dingtalk是钉钉开放平台提供在weex环境下使用的SDK，其中实
         margin-top: 20px;
       }
     </style>
+```
 
 weex-dingtalk只提供了少许api来完成钉钉客户端js-api的使用，有几点是需要注意的：
 
@@ -87,7 +90,6 @@ weex-dingtalk只提供了少许api来完成钉钉客户端js-api的使用，有�
 * 如果你没有调用config方法，并且传入签名对象，ready方法不会去发起签名
 * 你可以使用error注册一个error函数，与H5保持一致
 * 正常的js-api可以通过dingtalk.apis来获取
-
 
 ### apis 描述
 
