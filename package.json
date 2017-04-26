@@ -1,6 +1,6 @@
 {
   "name": "weex-dingtalk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Dingtalk Weex Js Api SDK",
   "main": "dist/weex-dingtalk-min.js",
   "scripts": {
