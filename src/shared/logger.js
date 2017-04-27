@@ -2,7 +2,8 @@
 
 const logger:{
   warn:Function,
-
+  info:Function,
+  error:Function
 } = {
   warn: function (msg: string, e:Object){
     console.warn('[DINGTALK JS SDK Warning]:', msg);
@@ -21,4 +22,4 @@ const logger:{
   }
 };
 
-export defaul logger;
+export default logger;
