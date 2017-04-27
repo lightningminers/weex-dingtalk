@@ -1,0 +1,24 @@
+/* @flow */
+
+const logger:{
+  warn:Function,
+
+} = {
+  warn: function (msg: string, e:Object){
+    console.warn('[DINGTALK JS SDK Warning]:', msg);
+    if (e) {
+      throw e;
+    } else {
+      const warning = new Error('WARNING STACK TRACE');
+      console.warn(warning.stack);
+    }
+  },
+  info: function (msg){
+    console.info('[DINGTALK JS SDK INFO]:', msg);
+  },
+  error: function (msg){
+    console.error('[DINGTALK JS SDK ERROR]:', msg);
+  }
+};
+
+export defaul logger;

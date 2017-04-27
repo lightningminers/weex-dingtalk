@@ -9,6 +9,7 @@ import permissionJsApis from './core/permissionJsApis.js';
 import { extend } from './shared/util.js';
 import parseJsApis from './core/parseJsApis.js';
 import initWebDingtalkSDK from './platforms/web/index.js';
+import logger from './shared/logger.js';
 
 let dingtalkJsApisConfig: ?Object = null;
 let dingtalkQueue: ?Array<Function> = null;
@@ -40,6 +41,7 @@ let dingtalk: {
   apis: {},
   config: function(config: Object){
     if (!config){
+      logger.warn('config is undefined,you must configure Dingtalk parameters');
       return;
     }
     dingtalkJsApisConfig = config;
@@ -56,6 +58,7 @@ let dingtalk: {
   },
   ready: function(cb: Function){
     if (!cb || typeof cb !== 'function'){
+      logger.warn('callback is undefined');
       return;
     }
     if (dingtalk.isSync){
