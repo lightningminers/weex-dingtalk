@@ -5,6 +5,7 @@
 // @flow
 
 import dt_nuva from 'weex-dingtalk-require';
+import weexInstanceVar from 'weex-dingtalk-polyfills';
 import permissionJsApis from './core/permissionJsApis.js';
 import { extend } from './shared/util.js';
 import parseJsApis from './core/parseJsApis.js';
@@ -15,7 +16,7 @@ let dingtalkJsApisConfig: ?Object = null;
 let dingtalkQueue: ?Array<Function> = null;
 let dingtalkErrorCb: ?Function = null;
 let dingtalkInit: boolean = true;
-let { platform } = weex.config.env;
+let platform = weexInstanceVar.env.platform;
 
 function performQueue (){
   if (dingtalkQueue && dingtalkQueue.length > 0){

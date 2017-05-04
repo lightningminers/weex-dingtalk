@@ -1,14 +1,13 @@
 {
-  "name": "weex-dingtalk",
+  "name": "weex-dingtalk-require",
   "version": "0.0.8",
-  "description": "Dingtalk Weex Js Api SDK",
-  "main": "dist/weex-dingtalk-min.js",
+  "description": "Dingtalk Weex Js Api System Modules",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "es5": "node ./build/build.js build",
+    "es5": "node ./build/build.js",
     "flow": "flow check",
-    "dev": "node ./build/build.js dev --watch",
-    "build": "npm run flow && npm run es5 && node ./build/build.js dev"
+    "build": "npm run flow & npm run es5"
   },
   "repository": {
     "type": "git",
@@ -16,6 +15,10 @@
   },
   "author": "icepy",
   "license": "MIT",
+  "dependencies": {
+    "weex-dingtalk-exec": "^0.0.7",
+    "weex-dingtalk-polyfills": "0.0.5"
+  },
   "devDependencies": {
     "babel-plugin-transform-flow-strip-types": "^6.22.0",
     "babel-preset-es2015-rollup": "^3.0.0",
@@ -24,12 +27,6 @@
     "rollup-plugin-alias": "^1.2.1",
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-commonjs": "^8.0.2",
-    "rollup-plugin-node-resolve": "^2.0.0",
-    "rollup-plugin-uglify": "^1.0.1",
-    "rollup-watch": "^3.2.2"
-  },
-  "dependencies": {
-    "weex-dingtalk-polyfills": "0.0.5",
-    "weex-dingtalk-require": "^0.0.8"
+    "rollup-plugin-node-resolve": "^2.0.0"
   }
 }

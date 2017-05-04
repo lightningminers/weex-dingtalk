@@ -1,3 +1,4 @@
+/* @flow */
 
 const hasOwnProperty = Object.prototype.hasOwnProperty;
 export function hasOwn(obj: Object, key: string): boolean{

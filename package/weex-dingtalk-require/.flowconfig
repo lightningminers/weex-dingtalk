@@ -1,0 +1,6 @@
+[ignore]
+
+<PROJECT_ROOT>/src/global-api/events.js
+
+[libs]
+flow

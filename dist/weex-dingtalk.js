@@ -57,15 +57,66 @@ function ios_exec(exec, config) {
   }
 }
 
+function initEnv() {
+  var weexEnv = {};
+  if (typeof weex !== 'undefined') {
+    weexEnv.platform = weex.config.env.platform;
+    if (weexEnv.platform !== 'Web') {
+      weexEnv.dingtalk = {
+        bundleUrl: weex.config.bundleUrl,
+        originalUrl: weex.config.originalUrl
+      };
+    }
+  } else {
+    // Rax Weex
+    if (typeof callNative === 'function') {
+      weexEnv.platform = navigator.platform;
+      weexEnv.dingtalk = {
+        bundleUrl: __weex_options__.bundleUrl,
+        originalUrl: __weex_options__.originalUrl
+      };
+    } else {
+      // Rax Web
+      weexEnv.platform = 'Web';
+    }
+  }
+  return weexEnv;
+}
+
+function initRequireModule() {
+  var requireModule = function requireModule(name) {
+    var moduleName = '@weex-module/' + name;
+    return __weex_require__(moduleName);
+  };
+  if (typeof weex !== 'undefined') {
+    requireModule = weex.requireModule;
+  }
+  return requireModule;
+}
+
+function polyfills() {
+  var weexVar = {
+    env: initEnv(),
+    requireModule: initRequireModule()
+  };
+  return weexVar;
+}
+
+var weexInstanceVar = void 0;
+if (!weexInstanceVar) {
+  weexInstanceVar = polyfills();
+}
+
+var weexInstanceVar$1 = weexInstanceVar;
+
 /**
  * Created by xiangwenwen on 2017/3/24.
  */
 
-var platform$2 = weex.config.env.platform;
-
+var platform$2 = weexInstanceVar$1.env.platform;
 var nativeExec = null;
 if (platform$2 !== 'Web') {
-  nativeExec = weex.requireModule('nuvajs-exec').exec;
+  nativeExec = weexInstanceVar$1.requireModule('nuvajs-exec').exec;
 }
 
 function exec(config) {
@@ -243,11 +294,10 @@ function parseModules(map) {
  * Created by xiangwenwen on 2017/3/24.
  */
 
-var platform$1 = weex.config.env.platform;
-
+var platform$1 = weexInstanceVar$1.env.platform;
 var globalEvent = {};
 if (platform$1 !== 'Web') {
-  globalEvent = weex.requireModule('globalEvent');
+  globalEvent = weexInstanceVar$1.requireModule('globalEvent');
 }
 
 function rtFunc(method) {
@@ -457,8 +507,7 @@ var dingtalkJsApisConfig = null;
 var dingtalkQueue = null;
 var dingtalkErrorCb = null;
 var dingtalkInit = true;
-var platform = weex.config.env.platform;
-
+var platform = weexInstanceVar$1.env.platform;
 
 function performQueue() {
   if (dingtalkQueue && dingtalkQueue.length > 0) {
