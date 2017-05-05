@@ -1,7 +1,7 @@
 {
   "name": "weex-dingtalk",
-  "version": "0.0.8",
-  "description": "Dingtalk Weex Js Api SDK",
+  "version": "0.0.9",
+  "description": "🔥 Dingtalk Weex Js Api SDK",
   "main": "dist/weex-dingtalk-min.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -27,9 +27,5 @@
     "rollup-plugin-node-resolve": "^2.0.0",
     "rollup-plugin-uglify": "^1.0.1",
     "rollup-watch": "^3.2.2"
-  },
-  "dependencies": {
-    "weex-dingtalk-polyfills": "0.0.5",
-    "weex-dingtalk-require": "^0.0.8"
   }
 }

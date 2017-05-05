@@ -1,5 +1,85 @@
 'use strict';
 
+function initEnv() {
+  var weexEnv = {};
+  if (typeof weex !== 'undefined') {
+    weexEnv.platform = weex.config.env.platform;
+    if (weexEnv.platform !== 'Web') {
+      weexEnv.dingtalk = {
+        bundleUrl: weex.config.bundleUrl,
+        originalUrl: weex.config.originalUrl
+      };
+    }
+  } else {
+    // Rax Weex
+    if (typeof callNative === 'function') {
+      weexEnv.platform = navigator.platform;
+      weexEnv.dingtalk = {
+        bundleUrl: __weex_options__.bundleUrl,
+        originalUrl: __weex_options__.originalUrl
+      };
+    } else {
+      // Rax Web
+      weexEnv.platform = 'Web';
+    }
+  }
+  return weexEnv;
+}
+
+function initRequireModule() {
+  var requireModule = function requireModule(name) {
+    var moduleName = '@weex-module/' + name;
+    return __weex_require__(moduleName);
+  };
+  if (typeof weex !== 'undefined') {
+    requireModule = weex.requireModule;
+  }
+  return requireModule;
+}
+
+function polyfills() {
+  var weexVar = {
+    env: initEnv(),
+    requireModule: initRequireModule()
+  };
+  return weexVar;
+}
+
+var weexInstanceVar = void 0;
+if (!weexInstanceVar) {
+  weexInstanceVar = polyfills();
+}
+
+var weexInstanceVar$1 = weexInstanceVar;
+
+function initNativeEvent(dt) {
+  dt.on = function (type, listener, useCapture) {
+    document.addEventListener(type, listener, useCapture);
+  };
+  dt.off = function (type, listener, useCapture) {
+    document.removeEventListener(type, listener, useCapture);
+  };
+}
+
+function initApis(dt) {
+  dt.apis = dt;
+}
+
+function initWebDingtalkSDK() {
+  var GLOBALWINDOW = function () {
+    return function () {
+      return window || this;
+    }();
+  }();
+  if (!GLOBALWINDOW.dd) {
+    console.error('Not Found Dingtalk.js');
+    throw new Error();
+  }
+  initNativeEvent(GLOBALWINDOW.dd);
+  initApis(GLOBALWINDOW.dd);
+  return GLOBALWINDOW.dd;
+}
+
 /**
  * Created by xiangwenwen on 2017/3/24.
  */
@@ -56,58 +136,6 @@ function ios_exec(exec, config) {
     fail && fail.call('-1', "");
   }
 }
-
-function initEnv() {
-  var weexEnv = {};
-  if (typeof weex !== 'undefined') {
-    weexEnv.platform = weex.config.env.platform;
-    if (weexEnv.platform !== 'Web') {
-      weexEnv.dingtalk = {
-        bundleUrl: weex.config.bundleUrl,
-        originalUrl: weex.config.originalUrl
-      };
-    }
-  } else {
-    // Rax Weex
-    if (typeof callNative === 'function') {
-      weexEnv.platform = navigator.platform;
-      weexEnv.dingtalk = {
-        bundleUrl: __weex_options__.bundleUrl,
-        originalUrl: __weex_options__.originalUrl
-      };
-    } else {
-      // Rax Web
-      weexEnv.platform = 'Web';
-    }
-  }
-  return weexEnv;
-}
-
-function initRequireModule() {
-  var requireModule = function requireModule(name) {
-    var moduleName = '@weex-module/' + name;
-    return __weex_require__(moduleName);
-  };
-  if (typeof weex !== 'undefined') {
-    requireModule = weex.requireModule;
-  }
-  return requireModule;
-}
-
-function polyfills() {
-  var weexVar = {
-    env: initEnv(),
-    requireModule: initRequireModule()
-  };
-  return weexVar;
-}
-
-var weexInstanceVar = void 0;
-if (!weexInstanceVar) {
-  weexInstanceVar = polyfills();
-}
-
-var weexInstanceVar$1 = weexInstanceVar;
 
 /**
  * Created by xiangwenwen on 2017/3/24.
@@ -380,34 +408,23 @@ var nuva = {
   EventEmitter: EventEmitter
 };
 
-/**
- * Created by xiangwenwen on 2017/3/27.
- */
-
-var runtimePermission = 'runtime.permission';
-
-function permissionJsApis(cb, jsApisConfig, errorCb) {
-  if (!jsApisConfig) {
-    cb(null);
-    return;
+var logger = {
+  warn: function warn(msg, e) {
+    console.warn('[DINGTALK JS SDK Warning]:', msg);
+    if (e) {
+      throw e;
+    } else {
+      var warning = new Error('WARNING STACK TRACE');
+      console.warn(warning.stack);
+    }
+  },
+  info: function info(msg) {
+    console.info('[DINGTALK JS SDK INFO]:', msg);
+  },
+  error: function error(msg) {
+    console.error('[DINGTALK JS SDK ERROR]:', msg);
   }
-  nuva.ready(function () {
-    var permission = nuva.require(runtimePermission);
-    var apisConf = jsApisConfig ? jsApisConfig : {};
-    var errCb = errorCb ? errorCb : null;
-    apisConf.onSuccess = function (response) {
-      cb(null, response);
-    };
-    apisConf.onFail = function (error) {
-      if (typeof errCb === 'function') {
-        errCb(error);
-      } else {
-        cb(error, null);
-      }
-    };
-    permission.requestJsApis(apisConf);
-  });
-}
+};
 
 /**
  * Created by xiangwenwen on 2017/3/27.
@@ -453,61 +470,38 @@ function parseJsApis(jsApis) {
   return apis;
 }
 
-function initNativeEvent(dt) {
-  dt.on = function (type, listener, useCapture) {
-    document.addEventListener(type, listener, useCapture);
-  };
-  dt.off = function (type, listener, useCapture) {
-    document.removeEventListener(type, listener, useCapture);
-  };
-}
-
-function initApis(dt) {
-  dt.apis = dt;
-}
-
-function initWebDingtalkSDK() {
-  var GLOBALWINDOW = function () {
-    return function () {
-      return window || this;
-    }();
-  }();
-  if (!GLOBALWINDOW.dd) {
-    console.error('Not Found Dingtalk.js');
-    throw new Error();
-  }
-  initNativeEvent(GLOBALWINDOW.dd);
-  initApis(GLOBALWINDOW.dd);
-  return GLOBALWINDOW.dd;
-}
-
-var logger = {
-  warn: function warn(msg, e) {
-    console.warn('[DINGTALK JS SDK Warning]:', msg);
-    if (e) {
-      throw e;
-    } else {
-      var warning = new Error('WARNING STACK TRACE');
-      console.warn(warning.stack);
-    }
-  },
-  info: function info(msg) {
-    console.info('[DINGTALK JS SDK INFO]:', msg);
-  },
-  error: function error(msg) {
-    console.error('[DINGTALK JS SDK ERROR]:', msg);
-  }
-};
-
 /**
  * Created by xiangwenwen on 2017/3/27.
  */
 
+var runtimePermission = 'runtime.permission';
+
+function permissionJsApis(cb, jsApisConfig, errorCb) {
+  if (!jsApisConfig) {
+    cb(null);
+    return;
+  }
+  nuva.ready(function () {
+    var permission = nuva.require(runtimePermission);
+    var apisConf = jsApisConfig ? jsApisConfig : {};
+    var errCb = errorCb ? errorCb : null;
+    apisConf.onSuccess = function (response) {
+      cb(null, response);
+    };
+    apisConf.onFail = function (error) {
+      if (typeof errCb === 'function') {
+        errCb(error);
+      } else {
+        cb(error, null);
+      }
+    };
+    permission.requestJsApis(apisConf);
+  });
+}
+
 var dingtalkJsApisConfig = null;
 var dingtalkQueue = null;
 var dingtalkErrorCb = null;
-var dingtalkInit = true;
-var platform = weexInstanceVar$1.env.platform;
 
 function performQueue() {
   if (dingtalkQueue && dingtalkQueue.length > 0) {
@@ -518,62 +512,72 @@ function performQueue() {
   }
 }
 
-var dingtalkSDK = {};
-var dingtalk = {
-  isSync: false,
-  apis: {},
-  config: function (_config) {
-    function config(_x) {
-      return _config.apply(this, arguments);
-    }
+function initWeexDingtalkSDK() {
+  var dingtalk = {
+    isSync: false,
+    apis: {},
+    config: function (_config) {
+      function config(_x) {
+        return _config.apply(this, arguments);
+      }
 
-    config.toString = function () {
-      return _config.toString();
-    };
-
-    return config;
-  }(function (config) {
-    if (!config) {
-      logger.warn('config is undefined,you must configure Dingtalk parameters');
-      return;
-    }
-    dingtalkJsApisConfig = config;
-  }),
-  init: function init() {
-    // 初始化一次
-    dingtalkQueue = [];
-    nuva.init();
-    nuva.ready(function () {
-      dingtalk.isSync = true;
-      dingtalk.apis = parseJsApis(nuva.getModules ? nuva.getModules : {});
-      performQueue();
-    });
-  },
-  ready: function ready(cb) {
-    if (!cb || typeof cb !== 'function') {
-      logger.warn('callback is undefined');
-      return;
-    }
-    if (dingtalk.isSync) {
-      permissionJsApis(cb, dingtalkJsApisConfig, dingtalkErrorCb);
-    } else {
-      var bufferFunction = function bufferFunction(cb) {
-        return function () {
-          permissionJsApis(cb, dingtalkJsApisConfig, dingtalkErrorCb);
-        };
+      config.toString = function () {
+        return _config.toString();
       };
 
-      dingtalkQueue && dingtalkQueue.push(bufferFunction(cb));
-    }
-  },
-  error: function error(cb) {
-    if (typeof cb === 'function') {
-      dingtalkErrorCb = cb;
-    }
-  },
-  on: nuva.on,
-  off: nuva.off
-};
+      return config;
+    }(function (config) {
+      if (!config) {
+        logger.warn('config is undefined,you must configure Dingtalk parameters');
+        return;
+      }
+      dingtalkJsApisConfig = config;
+    }),
+    init: function init() {
+      // 初始化一次
+      dingtalkQueue = [];
+      nuva.init();
+      nuva.ready(function () {
+        dingtalk.isSync = true;
+        dingtalk.apis = parseJsApis(nuva.getModules ? nuva.getModules : {});
+        performQueue();
+      });
+    },
+    ready: function ready(cb) {
+      if (!cb || typeof cb !== 'function') {
+        logger.warn('callback is undefined');
+        return;
+      }
+      if (dingtalk.isSync) {
+        permissionJsApis(cb, dingtalkJsApisConfig, dingtalkErrorCb);
+      } else {
+        var bufferFunction = function bufferFunction(cb) {
+          return function () {
+            permissionJsApis(cb, dingtalkJsApisConfig, dingtalkErrorCb);
+          };
+        };
+
+        dingtalkQueue && dingtalkQueue.push(bufferFunction(cb));
+      }
+    },
+    error: function error(cb) {
+      if (typeof cb === 'function') {
+        dingtalkErrorCb = cb;
+      }
+    },
+    on: nuva.on,
+    off: nuva.off
+  };
+  return dingtalk;
+}
+
+/**
+ * Created by xiangwenwen on 2017/3/27.
+ */
+
+var dingtalkInit = true;
+var platform = weexInstanceVar$1.env.platform;
+var dingtalkSDK = {};
 
 if (dingtalkInit) {
   dingtalkInit = false;
@@ -582,8 +586,9 @@ if (dingtalkInit) {
       dingtalkSDK = initWebDingtalkSDK();
       break;
     default:
-      dingtalkSDK = dingtalk;
-      dingtalk.init();
+      // default weex env SDK
+      dingtalkSDK = initWeexDingtalkSDK();
+      dingtalkSDK.init();
       break;
   }
 }

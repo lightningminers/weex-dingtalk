@@ -5,6 +5,8 @@ var babel = require('rollup-plugin-babel');
 var resolve = require('rollup-plugin-node-resolve');
 var uglify = require('rollup-plugin-uglify');
 var watch = require('rollup-watch');
+var alias = require('rollup-plugin-alias');
+var configAlias = require('./alias.js');
 
 var isWatch = false;
 if (process.argv[3]) {
@@ -18,7 +20,7 @@ if (process.argv[2]){
 function build(name){
     let config = {
         entry: './src/index.js',
-        plugins: [ resolve(),babel() ],
+        plugins: [ alias(configAlias),resolve(),babel() ],
         dest:'./dist/weex-dingtalk.js',
         format: 'cjs',
         sourceMap: true
