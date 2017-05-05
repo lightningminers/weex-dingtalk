@@ -1,5 +1,7 @@
 # weex-dingtalk Doc
 
+[![Build Status](https://travis-ci.org/icepy/weex-dingtalk.svg?branch=master)](https://travis-ci.org/icepy/weex-dingtalk)
+
 weex-dingtalk is a JavaScript SDK powered by Dingtalk weex Container, which is an awesome solution for building Dingtalk microapp with extremely high performanece.
 
 Usually you can build your microapp in Dingtalk as a traditional webapp, however sometimes your users are unsatisfied with the poor performance of your webapp. Why? Nowadays the gap between web and native, in the aspect of performance and user experience, is still wide. You might feel frustrated to optimize the performance of your webapp, but finally bring just a little improvement. That is why we need weex.
