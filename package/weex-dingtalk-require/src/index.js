@@ -5,7 +5,7 @@
 // @flow
 
 import exec from 'weex-dingtalk-exec';
-import { __nuva_require__, __nuva_define__, __nuva_define_remove__ } from './global-api/system-modules.js';
+import { __ship_require__, __ship_define__, __ship_define_remove__ } from './global-api/system-modules.js';
 import EventEmitter from './global-api/EventEmitter.js';
 import parseModules from './global-api/parseModules.js';
 import weexInstanceVar from 'weex-dingtalk-polyfills';
@@ -47,7 +47,7 @@ function initDingtalkRequire(cb: Function){
     rtFunc('getModules')(cb);
 }
 
-let nuva: {
+let ship: {
   getModules: ?Object,
   isReady: boolean,
   define: Function,
@@ -61,12 +61,12 @@ let nuva: {
 } = {
   getModules: null,
   isReady: false,
-  define: __nuva_define__,
+  define: __ship_define__,
   require: function(id: string) : any{
     if (!id){
       return exec;
     } else {
-      return __nuva_require__(id);
+      return __ship_require__(id);
     }
   },
   runtime: {
@@ -80,20 +80,20 @@ let nuva: {
     initDingtalkRequire(function(response){
       if(response){
         parseModules(response);
-        nuva.isReady = true;
-        nuva.getModules = response;
-        EventEmitter.emit('__nuva_ready__');
+        ship.isReady = true;
+        ship.getModules = response;
+        EventEmitter.emit('__ship_ready__');
       }
     });
   },
   ready: function(cb: Function){
-    if (nuva.isReady){
+    if (ship.isReady){
       if (typeof cb === 'function'){
         cb();
       }
     } else {
       if (typeof cb === 'function'){
-        EventEmitter.once('__nuva_ready__', function(){
+        EventEmitter.once('__ship_ready__', function(){
           cb();
         });
       }
@@ -117,4 +117,4 @@ let nuva: {
   EventEmitter: EventEmitter
 };
 
-export default nuva;
+export default ship;

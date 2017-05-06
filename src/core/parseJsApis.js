@@ -4,7 +4,7 @@
 
 //@flow
 
-import dt_nuva from 'weex-dingtalk-require';
+import ship from 'weex-dingtalk-require';
 
 export default function parseJsApis(jsApis: Object) : Object{
   let apis: Object = {};
@@ -16,7 +16,7 @@ export default function parseJsApis(jsApis: Object) : Object{
     while (true) {
       if (!staging) {
         if (1 === j) {
-          apis[node[i]] = dt_nuva.require(name);
+          apis[node[i]] = ship.require(name);
           break;
         }
         if (apis[node[i]]){
@@ -30,7 +30,7 @@ export default function parseJsApis(jsApis: Object) : Object{
         continue;
       } else {
         if ((j - 1) === i) {
-          staging[node[i]] = dt_nuva.require(name);
+          staging[node[i]] = ship.require(name);
           break;
         }
         if (staging[node[i]]) {

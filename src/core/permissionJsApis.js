@@ -4,7 +4,7 @@
 
 //@flow
 
-import dt_nuva from 'weex-dingtalk-require';
+import ship from 'weex-dingtalk-require';
 
 const runtimePermission: string = 'runtime.permission';
 
@@ -13,8 +13,8 @@ export default function permissionJsApis(cb: Function,jsApisConfig:?Object, erro
     cb(null);
     return;
   }
-  dt_nuva.ready(function(){
-    const permission = dt_nuva.require(runtimePermission);
+  ship.ready(function(){
+    const permission = ship.require(runtimePermission);
     let apisConf = jsApisConfig ? jsApisConfig : {};
     let errCb = errorCb ? errorCb : null;
     apisConf.onSuccess = function(response){

@@ -1,6 +1,6 @@
 /* @flow */
 
-import dt_nuva from 'weex-dingtalk-require';
+import ship from 'weex-dingtalk-require';
 import { extend } from 'shared/util.js';
 import logger from 'shared/logger.js';
 import parseJsApis from 'core/parseJsApis.js';
@@ -42,10 +42,10 @@ function initWeexDingtalkSDK() : Object{
     init: function(){
       // 初始化一次
       dingtalkQueue = [];
-      dt_nuva.init();
-      dt_nuva.ready(function(){
+      ship.init();
+      ship.ready(function(){
         dingtalk.isSync = true;
-        dingtalk.apis = parseJsApis(dt_nuva.getModules ? dt_nuva.getModules : {});
+        dingtalk.apis = parseJsApis(ship.getModules ? ship.getModules : {});
         performQueue();
       });
     },
@@ -70,8 +70,8 @@ function initWeexDingtalkSDK() : Object{
         dingtalkErrorCb = cb;
       }
     },
-    on: dt_nuva.on,
-    off: dt_nuva.off
+    on: ship.on,
+    off: ship.off
   };
   return dingtalk;
 }

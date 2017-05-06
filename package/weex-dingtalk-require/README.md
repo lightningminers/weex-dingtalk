@@ -8,7 +8,7 @@
 # install devDependencies
 npm install
 
-# 启动构建exec
+# 启动构建require
 npm run es5
 
 # 类型检查

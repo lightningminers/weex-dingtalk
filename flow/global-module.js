@@ -4,8 +4,8 @@ declare module 'weex-dingtalk-polyfills'{
 }
 
 declare module "weex-dingtalk-require"{
-  declare var nuva:Object;
-  declare export default typeof nuva;
+  declare var ship:Object;
+  declare export default typeof ship;
 }
 
 declare module 'weex-dingtalk-exec'{

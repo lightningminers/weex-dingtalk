@@ -5,13 +5,13 @@
 // @flow
 
 import exec from 'weex-dingtalk-exec';
-import { __nuva_define__ } from './system-modules.js';
+import { __ship_define__ } from './system-modules.js';
 
 export default function parseModules(map: Object){
   for (let name in map) {
     let methods = map[name];
     (function(_name, _methods) {
-      __nuva_define__(_name, function(__nuva_require__, __nuva_exports__,__nuva_module__) {
+      __ship_define__(_name, function(__ship_require__, __ship_exports__,__ship_module__) {
         let p = {};
         p._name = _name;
         for (let i in _methods) {
@@ -39,7 +39,7 @@ export default function parseModules(map: Object){
             };
           })(action);
         };
-        __nuva_module__.__nuva_exports__ = p;
+        __ship_module__.__ship_exports__ = p;
       });
     })(name, methods);
   }

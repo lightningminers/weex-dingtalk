@@ -4,20 +4,10 @@ function initEnv() {
   var weexEnv = {};
   if (typeof weex !== 'undefined') {
     weexEnv.platform = weex.config.env.platform;
-    if (weexEnv.platform !== 'Web') {
-      weexEnv.dingtalk = {
-        bundleUrl: weex.config.bundleUrl,
-        originalUrl: weex.config.originalUrl
-      };
-    }
   } else {
     // Rax Weex
     if (typeof callNative === 'function') {
       weexEnv.platform = navigator.platform;
-      weexEnv.dingtalk = {
-        bundleUrl: __weex_options__.bundleUrl,
-        originalUrl: __weex_options__.originalUrl
-      };
     } else {
       // Rax Web
       weexEnv.platform = 'Web';
@@ -162,42 +152,42 @@ function exec(config) {
  * Created by xiangwenwen on 2017/3/24.
  */
 
-var __nuva_modules__ = {};
+var __ship_modules__ = {};
 var requireStack = [];
 var inProgressModules = {};
 
-function build(__nuva_module__) {
-  var factory = __nuva_module__.factory;
-  __nuva_module__.__nuva_exports__ = {};
-  delete __nuva_module__.factory;
-  factory(__nuva_require__, __nuva_module__.__nuva_exports__, __nuva_module__);
-  return __nuva_module__.__nuva_exports__;
+function build(__ship_module__) {
+  var factory = __ship_module__.factory;
+  __ship_module__.__ship_exports__ = {};
+  delete __ship_module__.factory;
+  factory(__ship_require__, __ship_module__.__ship_exports__, __ship_module__);
+  return __ship_module__.__ship_exports__;
 }
-function __nuva_require__(id) {
-  if (!__nuva_modules__[id]) {
-    throw '__nuva_module__ ' + id + ' not found';
+function __ship_require__(id) {
+  if (!__ship_modules__[id]) {
+    throw '__ship_module__ ' + id + ' not found';
   } else if (id in inProgressModules) {
     var cycle = requireStack.slice(inProgressModules[id]).join('->') + '->' + id;
     throw 'Cycle in require graph: ' + cycle;
   }
-  if (__nuva_modules__[id].factory) {
+  if (__ship_modules__[id].factory) {
     try {
       inProgressModules[id] = requireStack.length;
       requireStack.push(id);
-      return build(__nuva_modules__[id]);
+      return build(__ship_modules__[id]);
     } finally {
       delete inProgressModules[id];
       requireStack.pop();
     }
   }
-  return __nuva_modules__[id].__nuva_exports__;
+  return __ship_modules__[id].__ship_exports__;
 }
 
-function __nuva_define__(id, factory) {
-  if (__nuva_modules__[id]) {
+function __ship_define__(id, factory) {
+  if (__ship_modules__[id]) {
     throw 'module ' + id + ' already defined';
   }
-  __nuva_modules__[id] = {
+  __ship_modules__[id] = {
     id: id,
     factory: factory
   };
@@ -284,7 +274,7 @@ function parseModules(map) {
   for (var name in map) {
     var methods = map[name];
     (function (_name, _methods) {
-      __nuva_define__(_name, function (__nuva_require__$$1, __nuva_exports__, __nuva_module__) {
+      __ship_define__(_name, function (__ship_require__$$1, __ship_exports__, __ship_module__) {
         var p = {};
         p._name = _name;
         for (var i in _methods) {
@@ -312,7 +302,7 @@ function parseModules(map) {
             };
           }(action);
         }
-        __nuva_module__.__nuva_exports__ = p;
+        __ship_module__.__ship_exports__ = p;
       });
     })(name, methods);
   }
@@ -352,15 +342,15 @@ function initDingtalkRequire(cb) {
   rtFunc('getModules')(cb);
 }
 
-var nuva = {
+var ship = {
   getModules: null,
   isReady: false,
-  define: __nuva_define__,
+  define: __ship_define__,
   require: function require(id) {
     if (!id) {
       return exec;
     } else {
-      return __nuva_require__(id);
+      return __ship_require__(id);
     }
   },
   runtime: {
@@ -374,20 +364,20 @@ var nuva = {
     initDingtalkRequire(function (response) {
       if (response) {
         parseModules(response);
-        nuva.isReady = true;
-        nuva.getModules = response;
-        EventEmitter.emit('__nuva_ready__');
+        ship.isReady = true;
+        ship.getModules = response;
+        EventEmitter.emit('__ship_ready__');
       }
     });
   },
   ready: function ready(cb) {
-    if (nuva.isReady) {
+    if (ship.isReady) {
       if (typeof cb === 'function') {
         cb();
       }
     } else {
       if (typeof cb === 'function') {
-        EventEmitter.once('__nuva_ready__', function () {
+        EventEmitter.once('__ship_ready__', function () {
           cb();
         });
       }
@@ -440,7 +430,7 @@ function parseJsApis(jsApis) {
     while (true) {
       if (!staging) {
         if (1 === j) {
-          apis[node[i]] = nuva.require(name);
+          apis[node[i]] = ship.require(name);
           break;
         }
         if (apis[node[i]]) {
@@ -454,7 +444,7 @@ function parseJsApis(jsApis) {
         continue;
       } else {
         if (j - 1 === i) {
-          staging[node[i]] = nuva.require(name);
+          staging[node[i]] = ship.require(name);
           break;
         }
         if (staging[node[i]]) {
@@ -481,8 +471,8 @@ function permissionJsApis(cb, jsApisConfig, errorCb) {
     cb(null);
     return;
   }
-  nuva.ready(function () {
-    var permission = nuva.require(runtimePermission);
+  ship.ready(function () {
+    var permission = ship.require(runtimePermission);
     var apisConf = jsApisConfig ? jsApisConfig : {};
     var errCb = errorCb ? errorCb : null;
     apisConf.onSuccess = function (response) {
@@ -536,10 +526,10 @@ function initWeexDingtalkSDK() {
     init: function init() {
       // 初始化一次
       dingtalkQueue = [];
-      nuva.init();
-      nuva.ready(function () {
+      ship.init();
+      ship.ready(function () {
         dingtalk.isSync = true;
-        dingtalk.apis = parseJsApis(nuva.getModules ? nuva.getModules : {});
+        dingtalk.apis = parseJsApis(ship.getModules ? ship.getModules : {});
         performQueue();
       });
     },
@@ -565,8 +555,8 @@ function initWeexDingtalkSDK() {
         dingtalkErrorCb = cb;
       }
     },
-    on: nuva.on,
-    off: nuva.off
+    on: ship.on,
+    off: ship.off
   };
   return dingtalk;
 }
