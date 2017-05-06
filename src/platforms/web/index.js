@@ -1,22 +1,14 @@
 
 /* @flow */
 
-import initNativeEvent from './nativeEvent.js';
-import initApis from './apis.js';
 
-function initWebDingtalkSDK () : Object {
-  const GLOBALWINDOW:GLOBALWINDOW = (function(){
-    return (function(){
-      return window || this;
-    })();
-  })();
-  if (!GLOBALWINDOW.dd){
-    console.error('Not Found Dingtalk.js');
-    throw new Error()
-  }
-  initNativeEvent(GLOBALWINDOW.dd);
-  initApis(GLOBALWINDOW.dd);
-  return GLOBALWINDOW.dd;
+import initDingtalkSDK from 'core/bridge.js';
+import installNativeEvent from './nativeEvent.js';
+
+function initWebDingtalkSDK() : Object{
+  let dingtalk = initDingtalkSDK();
+  installNativeEvent(dingtalk);
+  return dingtalk;
 }
 
 export default initWebDingtalkSDK;

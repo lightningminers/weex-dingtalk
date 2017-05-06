@@ -7,6 +7,7 @@
 import android_exec from './android_exec.js';
 import ios_exec from './ios_exec.js';
 import weexInstanceVar from 'weex-dingtalk-polyfills';
+import web_exec from './web_exec.js';
 
 let platform  = weexInstanceVar.env.platform;
 let nativeExec: ?Function = null;
@@ -41,11 +42,11 @@ function exec_affirm(plugin: string, action: string, args: ?Object,onSuccess: ?F
 function exec(config:Object) {
   let native_exec: Function = nativeExec ? nativeExec : function(){};
   if (platform === 'iOS'){
-      ios_exec(native_exec,config);
+    ios_exec(native_exec,config);
+  } else if(platform === 'android') {
+    android_exec(native_exec,config);
   } else {
-      if (platform === 'android'){
-          android_exec(native_exec,config);
-      }
+    web_exec(config);
   }
 }
 

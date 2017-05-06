@@ -1,18 +1,29 @@
 'use strict';
 
+// DingTalk
 function initEnv() {
   var weexEnv = {};
   if (typeof weex !== 'undefined') {
     weexEnv.platform = weex.config.env.platform;
+    if (weexEnv.platform !== 'Web') {
+      weexEnv.appName = weex.config.env.appName;
+    }
   } else {
     // Rax Weex
     if (typeof callNative === 'function') {
       weexEnv.platform = navigator.platform;
+      weexEnv.appName = navigator.appName;
     } else {
       // Rax Web
       weexEnv.platform = 'Web';
     }
   }
+  if (weexEnv.platform === 'Web') {
+    weexEnv.isDingtalk = /DingTalk/.test(navigator.userAgent);
+  } else {
+    weexEnv.isDingtalk = weexEnv.appName === 'DingTalk';
+  }
+
   return weexEnv;
 }
 
@@ -41,34 +52,6 @@ if (!weexInstanceVar) {
 }
 
 var weexInstanceVar$1 = weexInstanceVar;
-
-function initNativeEvent(dt) {
-  dt.on = function (type, listener, useCapture) {
-    document.addEventListener(type, listener, useCapture);
-  };
-  dt.off = function (type, listener, useCapture) {
-    document.removeEventListener(type, listener, useCapture);
-  };
-}
-
-function initApis(dt) {
-  dt.apis = dt;
-}
-
-function initWebDingtalkSDK() {
-  var GLOBALWINDOW = function () {
-    return function () {
-      return window || this;
-    }();
-  }();
-  if (!GLOBALWINDOW.dd) {
-    console.error('Not Found Dingtalk.js');
-    throw new Error();
-  }
-  initNativeEvent(GLOBALWINDOW.dd);
-  initApis(GLOBALWINDOW.dd);
-  return GLOBALWINDOW.dd;
-}
 
 /**
  * Created by xiangwenwen on 2017/3/24.
@@ -127,6 +110,86 @@ function ios_exec(exec, config) {
   }
 }
 
+var platform$3 = weexInstanceVar$1.env.platform;
+var isAndroid = null;
+var isIOS = null;
+
+if (platform$3 === 'Web') {
+  var UA = window.navigator.userAgent.toLowerCase();
+  isAndroid = UA && UA.indexOf('android') > -1;
+  isIOS = UA && /iphone|ipad|ipod|ios/.test(UA);
+}
+
+function ios_exec$1(config) {
+  var webViewJavascriptBridge = window._WebViewJavascriptBridge;
+  if (!webViewJavascriptBridge) {
+    throw 'runtime and bridge are not ready';
+  }
+  var body = config.body,
+      onSuccess = config.onSuccess,
+      onFail = config.onFail,
+      context = config.context;
+
+  webViewJavascriptBridge.callHandler('exec', body, function (response) {
+    if (typeof response !== 'undefined') {
+      if ('0' === response.errorCode) {
+        typeof onSuccess === 'function' && onSuccess.call(context, response.result);
+      } else {
+        typeof onFail === 'function' && onFail.call(context, response.result);
+      }
+    }
+    typeof onFail === 'function' && onFail.call('-1', '');
+  });
+}
+
+function android_exec$1(config) {
+  var webViewJavascriptBridge = window.WebViewJavascriptBridge;
+  if (!webViewJavascriptBridge) {
+    throw 'runtime and bridge are not ready';
+  }
+  var body = config.body,
+      onSuccess = config.onSuccess,
+      onFail = config.onFail,
+      context = config.context;
+  var plugin = body.plugin,
+      action = body.action,
+      args = body.args;
+
+  if (plugin && 'function' === typeof plugin && action && 'function' === typeof action) {
+    var t1 = plugin;
+    var t2 = action;
+    plugin = args;
+    action = onSuccess;
+    args = onFail;
+    onSuccess = t1;
+    onFail = t2;
+  }
+  if (plugin && 'string' === typeof plugin && action && 'string' === typeof action) {
+    if (args && 'function' === typeof args) {
+      context = onFail;
+      onFail = onSuccess;
+      onSuccess = args;
+      args = {};
+    }
+  }
+  var api = plugin + '.' + action;
+  var jsonArgs = JSON.stringify(args);
+  var callbackId = callback.register({
+    onSuccess: onSuccess,
+    onFail: onFail,
+    context: context
+  });
+  webViewJavascriptBridge.callHandler(api, jsonArgs, callbackId);
+}
+
+function web_exec(config) {
+  if (isIOS) {
+    ios_exec$1(config);
+  } else if (isAndroid) {
+    android_exec$1(config);
+  }
+}
+
 /**
  * Created by xiangwenwen on 2017/3/24.
  */
@@ -141,10 +204,10 @@ function exec(config) {
   var native_exec = nativeExec ? nativeExec : function () {};
   if (platform$2 === 'iOS') {
     ios_exec(native_exec, config);
+  } else if (platform$2 === 'android') {
+    android_exec(native_exec, config);
   } else {
-    if (platform$2 === 'android') {
-      android_exec(native_exec, config);
-    }
+    web_exec(config);
   }
 }
 
@@ -502,7 +565,7 @@ function performQueue() {
   }
 }
 
-function initWeexDingtalkSDK() {
+function initDingtalkSDK() {
   var dingtalk = {
     isSync: false,
     apis: {},
@@ -554,10 +617,34 @@ function initWeexDingtalkSDK() {
       if (typeof cb === 'function') {
         dingtalkErrorCb = cb;
       }
-    },
-    on: ship.on,
-    off: ship.off
+    }
   };
+  return dingtalk;
+}
+
+function installNativeEvent(dingtalk) {
+  dingtalk.on = function (type, listener, useCapture) {
+    document.addEventListener(type, listener, useCapture);
+  };
+  dingtalk.off = function (type, listener, useCapture) {
+    document.removeEventListener(type, listener, useCapture);
+  };
+}
+
+function initWebDingtalkSDK() {
+  var dingtalk = initDingtalkSDK();
+  installNativeEvent(dingtalk);
+  return dingtalk;
+}
+
+function installNativeEvent$2(dingtalk) {
+  dingtalk.on = ship.on;
+  dingtalk.off = ship.off;
+}
+
+function initWeexDingtalkSDK() {
+  var dingtalk = initDingtalkSDK();
+  installNativeEvent$2(dingtalk);
   return dingtalk;
 }
 
@@ -567,7 +654,12 @@ function initWeexDingtalkSDK() {
 
 var dingtalkInit = true;
 var platform = weexInstanceVar$1.env.platform;
+var isDingtalk = weexInstanceVar$1.env.isDingtalk;
 var dingtalkSDK = {};
+
+if (!isDingtalk) {
+  throw 'can only open the page be Dingtalk Container';
+}
 
 if (dingtalkInit) {
   dingtalkInit = false;
@@ -576,9 +668,7 @@ if (dingtalkInit) {
       dingtalkSDK = initWebDingtalkSDK();
       break;
     default:
-      // default weex env SDK
       dingtalkSDK = initWeexDingtalkSDK();
-      dingtalkSDK.init();
       break;
   }
 }
