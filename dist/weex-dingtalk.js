@@ -113,6 +113,7 @@ function ios_exec(exec, config) {
 var platform$3 = weexInstanceVar$1.env.platform;
 var isAndroid = null;
 var isIOS = null;
+var bridgeReady = false;
 
 if (platform$3 === 'Web') {
   var UA = window.navigator.userAgent.toLowerCase();
@@ -143,10 +144,6 @@ function ios_exec$1(config) {
 }
 
 function android_exec$1(config) {
-  var webViewJavascriptBridge = window.WebViewJavascriptBridge;
-  if (!webViewJavascriptBridge) {
-    throw 'runtime and bridge are not ready';
-  }
   var body = config.body,
       onSuccess = config.onSuccess,
       onFail = config.onFail,
@@ -155,38 +152,38 @@ function android_exec$1(config) {
       action = body.action,
       args = body.args;
 
-  if (plugin && 'function' === typeof plugin && action && 'function' === typeof action) {
-    var t1 = plugin;
-    var t2 = action;
-    plugin = args;
-    action = onSuccess;
-    args = onFail;
-    onSuccess = t1;
-    onFail = t2;
-  }
-  if (plugin && 'string' === typeof plugin && action && 'string' === typeof action) {
-    if (args && 'function' === typeof args) {
-      context = onFail;
-      onFail = onSuccess;
-      onSuccess = args;
-      args = {};
-    }
-  }
-  var api = plugin + '.' + action;
-  var jsonArgs = JSON.stringify(args);
-  var callbackId = callback.register({
-    onSuccess: onSuccess,
-    onFail: onFail,
-    context: context
-  });
-  webViewJavascriptBridge.callHandler(api, jsonArgs, callbackId);
+  var webViewJavascriptBridge = window.WebViewJavascriptBridgeAndroid;
+  webViewJavascriptBridge(plugin, action, args, onSuccess, onFail, context);
+}
+
+function runAndroid() {
+  window.WebViewJavascriptBridgeAndroid = window.nuva.require();
 }
 
 function web_exec(config) {
   if (isIOS) {
-    ios_exec$1(config);
+    if (window._WebViewJavascriptBridge) {
+      ios_exec$1(config);
+    } else {
+      document.addEventListener('_WebViewJavascriptBridgeReady', function () {
+        ios_exec$1(config);
+      }, false);
+    }
   } else if (isAndroid) {
-    android_exec$1(config);
+    var win = window;
+    if (win.nuva && (win.nuva.isReady === undefined || win.nuva.isReady)) {
+      if (!bridgeReady) {
+        runAndroid();
+      }
+      android_exec$1(config);
+    } else {
+      document.addEventListener('runtimeready', function () {
+        if (!bridgeReady) {
+          runAndroid();
+        }
+        android_exec$1(config);
+      }, false);
+    }
   }
 }
 
@@ -479,6 +476,31 @@ var logger = {
   }
 };
 
+var checks = ['agentId', 'corpId', 'timeStamp', 'nonceStr', 'signature', 'jsApiList'];
+
+function checkConfigVars(config) {
+  /*
+    corpId,
+    appId,
+    timeStamp,
+    nonceStr,
+    signature,
+    jsApiList,
+    type,
+    agentId
+   */
+  var checkInfo = [];
+  var infoKey = Object.keys(config);
+  checks.map(function (v) {
+    var checkResult = infoKey.filter(function (k) {
+      return v === k;
+    });
+    if (checkResult.length === 0) {
+      logger.warn('configure : ' + v + 'is empty');
+    }
+  });
+}
+
 /**
  * Created by xiangwenwen on 2017/3/27.
  */
@@ -531,7 +553,9 @@ var runtimePermission = 'runtime.permission';
 
 function permissionJsApis(cb, jsApisConfig, errorCb) {
   if (!jsApisConfig) {
-    cb(null);
+    ship.ready(function () {
+      cb(null);
+    });
     return;
   }
   ship.ready(function () {
@@ -583,6 +607,9 @@ function initDingtalkSDK() {
       if (!config) {
         logger.warn('config is undefined,you must configure Dingtalk parameters');
         return;
+      }
+      if (process.env.NODE_ENV !== 'production') {
+        checkConfigVars(config);
       }
       dingtalkJsApisConfig = config;
     }),
@@ -658,7 +685,7 @@ var isDingtalk = weexInstanceVar$1.env.isDingtalk;
 var dingtalkSDK = {};
 
 if (!isDingtalk) {
-  throw 'can only open the page be Dingtalk Container';
+  logger.warn('can only open the page be Dingtalk Container');
 }
 
 if (dingtalkInit) {

@@ -10,7 +10,9 @@ const runtimePermission: string = 'runtime.permission';
 
 export default function permissionJsApis(cb: Function,jsApisConfig:?Object, errorCb: ?Function){
   if (!jsApisConfig){
-    cb(null);
+    ship.ready(function(){
+      cb(null);
+    });
     return;
   }
   ship.ready(function(){

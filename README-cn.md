@@ -153,10 +153,6 @@ dingtalk.ready(function(){
 
 ## 降级H5之后如何使用
 
-如果你的Weex应用被降级到了H5，那么在你的应用.html文件中，自行引入Dingtalk.js，这个文件的网络地址可以在`钉钉开放平台->客户端接入`中获取，一定要保证你引入地方在你的业务bundle.js之前。
-
-Dingtalk client doc , [https://open-doc.dingtalk.com/docs/doc.htm?spm=a219a.7629140.0.0.DHF3qR&treeId=171&articleId=104910&docType=1](https://open-doc.dingtalk.com/docs/doc.htm?spm=a219a.7629140.0.0.DHF3qR&treeId=171&articleId=104910&docType=1)
-
 为了达到让你的应用可以同时使用两种环境下的js-api，你应该继续使用 `import dingtalk from 'weex-dingtalk'` 的方式来引入模块，在这个模块中会自动判断环境给你导出相应的SDK模块。
 
 H5环境：

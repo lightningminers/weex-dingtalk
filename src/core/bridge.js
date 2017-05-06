@@ -3,6 +3,7 @@
 import ship from 'weex-dingtalk-require';
 import { extend } from 'shared/util.js';
 import logger from 'shared/logger.js';
+import checkConfigVars from 'shared/checkConfigVars.js';
 import parseJsApis from './parseJsApis.js';
 import permissionJsApis from './permissionJsApis.js';
 
@@ -34,6 +35,9 @@ function initDingtalkSDK() : Object{
       if (!config){
         logger.warn('config is undefined,you must configure Dingtalk parameters');
         return;
+      }
+      if (process.env.NODE_ENV !== 'production'){
+        checkConfigVars(config);
       }
       dingtalkJsApisConfig = config;
     },

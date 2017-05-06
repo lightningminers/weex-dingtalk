@@ -161,10 +161,6 @@ see other： [https://open-doc.dingtalk.com/doc2/detail?spm=0.0.0.0.O1cH5b&treeI
 
 ## How runing Web
 
-if your application runing in Web, which your `index.html` src'value set `Dingtalk.js` URL .  
-
-look at  this URL to Dingtalk client doc , [https://open-doc.dingtalk.com/docs/doc.htm?spm=a219a.7629140.0.0.DHF3qR&treeId=171&articleId=104910&docType=1](https://open-doc.dingtalk.com/docs/doc.htm?spm=a219a.7629140.0.0.DHF3qR&treeId=171&articleId=104910&docType=1)
-
 Web：
 
 ```JavaScript
