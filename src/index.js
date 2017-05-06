@@ -26,6 +26,7 @@ if (dingtalkInit){
         dingtalkSDK = initWeexDingtalkSDK();
       break
   }
+  dingtalkSDK.init();
 }
 
 export default dingtalkSDK;

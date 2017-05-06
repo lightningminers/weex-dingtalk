@@ -671,6 +671,7 @@ if (dingtalkInit) {
       dingtalkSDK = initWeexDingtalkSDK();
       break;
   }
+  dingtalkSDK.init();
 }
 
 var dingtalkSDK$1 = dingtalkSDK;
