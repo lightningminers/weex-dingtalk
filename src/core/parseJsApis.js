@@ -58,6 +58,9 @@ export default function parseJsApis(jsApis: Object) : Object{
         staging = staging[node[i]];
       }
       i++;
+      if (i > j) {
+        break;
+      }
     }
   }
 	return apis;
