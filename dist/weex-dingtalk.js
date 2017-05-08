@@ -515,7 +515,24 @@ function parseJsApis(jsApis) {
     while (true) {
       if (!staging) {
         if (1 === j) {
-          apis[node[i]] = ship.require(name);
+          var h = false;
+          var p = apis[node[i]];
+          var s = ship.require(name);
+          for (var x in p) {
+            if (p.hasOwnProperty(x)) {
+              h = true;
+              break;
+            }
+          }
+          if (h) {
+            for (var k in s) {
+              if (s.hasOwnProperty(k)) {
+                p[k] = s[k];
+              }
+            }
+          } else {
+            apis[node[i]] = ship.require(name);
+          }
           break;
         }
         if (apis[node[i]]) {

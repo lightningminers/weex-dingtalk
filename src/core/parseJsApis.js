@@ -16,7 +16,24 @@ export default function parseJsApis(jsApis: Object) : Object{
     while (true) {
       if (!staging) {
         if (1 === j) {
-          apis[node[i]] = ship.require(name);
+          let h = false;
+          let p = apis[node[i]];
+          let s = ship.require(name);
+          for (let x in p){
+            if (p.hasOwnProperty(x)){
+              h = true;
+              break;
+            }
+          }
+          if (h){
+            for (let k in s){
+              if (s.hasOwnProperty(k)){
+                p[k] = s[k];
+              }
+            }
+          } else {
+            apis[node[i]] = ship.require(name);
+          }
           break;
         }
         if (apis[node[i]]){
