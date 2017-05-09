@@ -18,7 +18,9 @@ npm install weex-dingtalk --save
 
 ## 使用
 
-且看例子：（weex-entry.js）
+### Vue
+
+入口weex-entry.js：
 
 ```JavaScript
   import Hello from './Hello.vue';
@@ -89,6 +91,45 @@ npm install weex-dingtalk --save
         margin-top: 20px;
       }
     </style>
+```
+
+### Rax
+
+入口weex-entry.js:
+
+```JavaScript
+import { createElement, render } from 'rax';
+import App from './app.js';
+render(<App/>);
+```
+
+业务app.js：
+
+```JavaScript
+import { createElement, Component, render} from 'rax';
+import View from 'rax-view';
+import Text from 'rax-text';
+import dingtalk from 'weex-dingtalk';
+export default class App extends Component{
+	render(){
+		return(
+			<View>
+				<Text onPress={
+					()=>{
+						dingtalk.ready(function(){
+							const dd = dingtalk.apis;
+							dd.biz.util.openLink({
+								url: 'https://github.com/icepy/weex-dingtalk'
+							})
+						})
+					}
+				}>
+					Hello World icepy !!!
+				</Text>
+			</View>
+		);
+	}
+}
 ```
 
 > 注意：
@@ -169,4 +210,118 @@ dingtalk.ready(function(){
   });
 });
 
+```
+
+## 统一的事件回调机制
+
+当你注册了事件之后，触发事件将由客户端来执行。
+
+- 页面`resume`事件
+
+当页面重新可见并可以交互的时候，钉钉客户端会触发这个事件。
+
+```JavaScript
+import dingtalk from 'weex-dingtalk';
+dingtalk.ready(function(){
+	dingtalk.on('resume',function(){
+		// do something
+	})
+});
+```
+
+- 页面`pause`事件
+
+当页面不可见时，钉钉客户端会触发这个事件。
+
+```JavaScript
+import dingtalk from 'weex-dingtalk';
+dingtalk.ready(function(){
+   dingtalk.on('pause',function(){
+       // do something
+   })
+});
+```
+
+- 导航栏 `navRightButton` 事件
+
+导航栏右侧按钮的点击事件。
+
+```JavaScript
+import dingtalk from 'weex-dingtalk';
+dingtalk.ready(function(){
+	const dd = dingtalk.apis;
+	dd.biz.navigation.setRight({
+		control: true,
+		show: true,
+		text: 'icepy'
+	})
+	dingtalk.on('navRightButton',function(){
+	 // do something
+	})
+})
+```
+如果想让你注册的`navRightButton`客户端可以正常的触发，需要在设置`setRight`时传`control`为`true`。
+
+- 导航栏 `navTitle` 事件
+
+导航栏上`title`的点击事件
+
+```JavaScript
+import dingtalk from 'weex-dingtalk';
+dingtalk.ready(function(){
+	dingtalk.on('navTitle',function(){
+	  // do something
+	})
+});
+```
+
+- 导航栏 `navHelpIcon` 事件
+
+导航栏上点击icon时会触发的事件
+
+```JavaScript
+import dingtalk from 'weex-dingtalk';
+dingtalk.ready(function(){
+	const dd = dingtalk.apis;
+	dd.biz.navigation.setIcon({
+		showIcon: true,
+		iconIndex: 101
+	})
+	dingtalk.on('navHelpIcon',function(){
+	  // do something
+	})
+});
+```
+
+- 导航栏 `backbutton` 事件
+
+导航栏左侧按钮的点击事件，注意：**这个事件触发之后会自动返回**
+
+```JavaScript
+import dingtalk from 'weex-dingtalk';
+dingtalk.ready(function(){
+	const dd = dingtalk.apis;
+	dd.biz.navigation.setLeft({
+	  show: true,
+	  control: true,
+	  text: 'icepy'
+	});
+	dingtalk.on('backbutton',function(){
+		//do something
+	})
+})
+```
+如果想让你注册的`backbutton`客户端可以正常的触发，需要在设置`setLeft`时传`control`为`true`。
+
+- 导航栏 `navMenu` 事件
+
+当你在导航栏右侧设置了多个按钮，你就需要注册`navMenu`事件来处理点击。
+
+```JavaScript
+import dingtalk from 'weex-dingtalk';
+dingtalk.ready(function(){
+	dingtalk.on('navMenu',function(){
+		// do something
+	})
+})
 ```
