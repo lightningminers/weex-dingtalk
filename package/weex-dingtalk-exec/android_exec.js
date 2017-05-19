@@ -3,15 +3,15 @@
  */
 
 // @flow
+const STATUS_NO_RESULT: string = '0';
+const STATUS_OK: string = '1';
+const STATUS_ERROR: string = '2';
 
 export default function android_exec(exec:Function,config:Object){
   const body = config.body;
   const win = config.onSuccess;
   const fail = config.onFail;
   const context = config.context;
-  const STATUS_NO_RESULT: string = '0';
-  const STATUS_OK: string = '1';
-  const STATUS_ERROR: string = '2';
   if (exec && typeof exec === 'function'){
     exec(body,function (response) {
       if (typeof response !== "undefined" && response.__status__) {

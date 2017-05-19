@@ -4,7 +4,7 @@
 
 //@flow
 
-import ship from 'weex-dingtalk-require';
+import ship from 'weex-dingtalk-runtime';
 
 const runtimePermission: string = 'runtime.permission';
 

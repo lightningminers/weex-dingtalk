@@ -5,9 +5,9 @@ function absolute (str) {
 }
 
 module.exports = {
-  'weex-dingtalk-polyfills': absolute('package/weex-dingtalk-polyfills/src/index.js'),
-  'weex-dingtalk-exec': absolute('package/weex-dingtalk-exec/src/index.js'),
-  'weex-dingtalk-require': absolute('package/weex-dingtalk-require/src/index.js'),
+  'weex-dingtalk-polyfills': absolute('package/weex-dingtalk-polyfills/index.js'),
+  'weex-dingtalk-exec': absolute('package/weex-dingtalk-exec/index.js'),
+  'weex-dingtalk-runtime': absolute('package/weex-dingtalk-runtime/index.js'),
   'shared': absolute('src/shared'),
   'core': absolute('src/core')
 };

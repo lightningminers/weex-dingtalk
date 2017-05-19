@@ -57,14 +57,14 @@ var weexInstanceVar$1 = weexInstanceVar;
  * Created by xiangwenwen on 2017/3/24.
  */
 
+var STATUS_OK = '1';
+var STATUS_ERROR = '2';
+
 function android_exec(exec, config) {
   var body = config.body;
   var win = config.onSuccess;
   var fail = config.onFail;
   var context = config.context;
-  var STATUS_NO_RESULT = '0';
-  var STATUS_OK = '1';
-  var STATUS_ERROR = '2';
   if (exec && typeof exec === 'function') {
     exec(body, function (response) {
       if (typeof response !== "undefined" && response.__status__) {
@@ -212,51 +212,6 @@ function exec(config) {
  * Created by xiangwenwen on 2017/3/24.
  */
 
-var __ship_modules__ = {};
-var requireStack = [];
-var inProgressModules = {};
-
-function build(__ship_module__) {
-  var factory = __ship_module__.factory;
-  __ship_module__.__ship_exports__ = {};
-  delete __ship_module__.factory;
-  factory(__ship_require__, __ship_module__.__ship_exports__, __ship_module__);
-  return __ship_module__.__ship_exports__;
-}
-function __ship_require__(id) {
-  if (!__ship_modules__[id]) {
-    throw '__ship_module__ ' + id + ' not found';
-  } else if (id in inProgressModules) {
-    var cycle = requireStack.slice(inProgressModules[id]).join('->') + '->' + id;
-    throw 'Cycle in require graph: ' + cycle;
-  }
-  if (__ship_modules__[id].factory) {
-    try {
-      inProgressModules[id] = requireStack.length;
-      requireStack.push(id);
-      return build(__ship_modules__[id]);
-    } finally {
-      delete inProgressModules[id];
-      requireStack.pop();
-    }
-  }
-  return __ship_modules__[id].__ship_exports__;
-}
-
-function __ship_define__(id, factory) {
-  if (__ship_modules__[id]) {
-    throw 'module ' + id + ' already defined';
-  }
-  __ship_modules__[id] = {
-    id: id,
-    factory: factory
-  };
-}
-
-/**
- * Created by xiangwenwen on 2017/3/24.
- */
-
 var cat = {};
 var EventEmitter = {
   on: function on(event, fun) {
@@ -327,45 +282,97 @@ function toArray(list, index) {
 }
 
 /**
- * Created by xiangwenwen on 2017/3/24.
+ * Created by xiangwenwen on 2017/3/27.
  */
 
-function parseModules(map) {
-  for (var name in map) {
-    var methods = map[name];
-    (function (_name, _methods) {
-      __ship_define__(_name, function (__ship_require__$$1, __ship_exports__, __ship_module__) {
-        var p = {};
-        p._name = _name;
-        for (var i in _methods) {
-          var action = _methods[i];
-          p[action] = function (_action) {
-            return function (params) {
-              if (!params) {
-                params = {};
-              }
-              var onSuccess = params.onSuccess;
-              var onFail = params.onFail;
-              delete params.onSuccess;
-              delete params.onFail;
-              delete params.onCancel;
-              var config = {
-                body: {
-                  plugin: _name,
-                  action: _action,
-                  args: params
-                },
-                onSuccess: onSuccess,
-                onFail: onFail
-              };
-              return exec(config);
-            };
-          }(action);
+function createApi(_name, _action) {
+  return function (params) {
+    if (!params) {
+      params = {};
+    }
+    var onSuccess = params.onSuccess;
+    var onFail = params.onFail;
+    delete params.onSuccess;
+    delete params.onFail;
+    delete params.onCancel;
+    var config = {
+      body: {
+        plugin: _name,
+        action: _action,
+        args: params
+      },
+      onSuccess: onSuccess,
+      onFail: onFail
+    };
+    exec(config);
+  };
+}
+
+function createFuns(name, funs) {
+  var s = Object.create(null);
+  funs.forEach(function (action) {
+    s[action] = createApi(name, action);
+  });
+  return s;
+}
+
+function parseJsApis(jsApis) {
+  var apis = Object.create(null);
+  for (var name in jsApis) {
+    var node = name.split('.');
+    var funs = jsApis[name];
+    var staging = null;
+    var i = 0;
+    var j = node.length;
+    while (true) {
+      if (!staging) {
+        if (1 === j) {
+          var h = false;
+          var p = apis[node[i]];
+          var s = createFuns(name, funs);
+          for (var x in p) {
+            if (p.hasOwnProperty(x)) {
+              h = true;
+              break;
+            }
+          }
+          if (h) {
+            for (var k in s) {
+              p[k] = s[k];
+            }
+          } else {
+            apis[node[i]] = createFuns(name, funs);
+          }
+          break;
         }
-        __ship_module__.__ship_exports__ = p;
-      });
-    })(name, methods);
+        if (apis[node[i]]) {
+          staging = apis[node[i]];
+          i++;
+          continue;
+        }
+        apis[node[i]] = {};
+        staging = apis[node[i]];
+        i++;
+        continue;
+      } else {
+        if (j - 1 === i) {
+          staging[node[i]] = createFuns(name, funs);
+          break;
+        }
+        if (staging[node[i]]) {
+          i++;
+          continue;
+        }
+        staging[node[i]] = {};
+        staging = staging[node[i]];
+      }
+      i++;
+      if (i > j) {
+        break;
+      }
+    }
   }
+  return apis;
 }
 
 /**
@@ -405,14 +412,6 @@ function initDingtalkRequire(cb) {
 var ship = {
   getModules: null,
   isReady: false,
-  define: __ship_define__,
-  require: function require(id) {
-    if (!id) {
-      return exec;
-    } else {
-      return __ship_require__(id);
-    }
-  },
   runtime: {
     info: rtFunc('info'),
     _interceptBackButton: rtFunc('interceptBackButton'),
@@ -423,9 +422,8 @@ var ship = {
   init: function init() {
     initDingtalkRequire(function (response) {
       if (response) {
-        parseModules(response);
         ship.isReady = true;
-        ship.getModules = response;
+        ship.apis = parseJsApis(response);
         EventEmitter.emit('__ship_ready__');
       }
     });
@@ -505,70 +503,6 @@ function checkConfigVars(config) {
  * Created by xiangwenwen on 2017/3/27.
  */
 
-function parseJsApis(jsApis) {
-  var apis = {};
-  for (var name in jsApis) {
-    var node = name.split('.');
-    var staging = null;
-    var i = 0;
-    var j = node.length;
-    while (true) {
-      if (!staging) {
-        if (1 === j) {
-          var h = false;
-          var p = apis[node[i]];
-          var s = ship.require(name);
-          for (var x in p) {
-            if (p.hasOwnProperty(x)) {
-              h = true;
-              break;
-            }
-          }
-          if (h) {
-            for (var k in s) {
-              if (s.hasOwnProperty(k)) {
-                p[k] = s[k];
-              }
-            }
-          } else {
-            apis[node[i]] = ship.require(name);
-          }
-          break;
-        }
-        if (apis[node[i]]) {
-          staging = apis[node[i]];
-          i++;
-          continue;
-        }
-        apis[node[i]] = {};
-        staging = apis[node[i]];
-        i++;
-        continue;
-      } else {
-        if (j - 1 === i) {
-          staging[node[i]] = ship.require(name);
-          break;
-        }
-        if (staging[node[i]]) {
-          i++;
-          continue;
-        }
-        staging[node[i]] = {};
-        staging = staging[node[i]];
-      }
-      i++;
-      if (i > j) {
-        break;
-      }
-    }
-  }
-  return apis;
-}
-
-/**
- * Created by xiangwenwen on 2017/3/27.
- */
-
 var runtimePermission = 'runtime.permission';
 
 function permissionJsApis(cb, jsApisConfig, errorCb) {
@@ -599,6 +533,7 @@ function permissionJsApis(cb, jsApisConfig, errorCb) {
 var dingtalkJsApisConfig = null;
 var dingtalkQueue = null;
 var dingtalkErrorCb = null;
+var isReady = false;
 
 function performQueue() {
   if (dingtalkQueue && dingtalkQueue.length > 0) {
@@ -611,7 +546,6 @@ function performQueue() {
 
 function initDingtalkSDK() {
   var dingtalk = {
-    isSync: false,
     apis: {},
     config: function (_config) {
       function config(_x) {
@@ -638,8 +572,8 @@ function initDingtalkSDK() {
       dingtalkQueue = [];
       ship.init();
       ship.ready(function () {
-        dingtalk.isSync = true;
-        dingtalk.apis = parseJsApis(ship.getModules ? ship.getModules : {});
+        isReady = ship.isReady;
+        dingtalk.apis = ship.apis ? ship.apis : {};
         performQueue();
       });
     },
@@ -648,7 +582,7 @@ function initDingtalkSDK() {
         logger.warn('callback is undefined');
         return;
       }
-      if (dingtalk.isSync) {
+      if (isReady) {
         permissionJsApis(cb, dingtalkJsApisConfig, dingtalkErrorCb);
       } else {
         var bufferFunction = function bufferFunction(cb) {
@@ -664,7 +598,8 @@ function initDingtalkSDK() {
       if (typeof cb === 'function') {
         dingtalkErrorCb = cb;
       }
-    }
+    },
+    EventEmitter: ship.EventEmitter
   };
   return dingtalk;
 }

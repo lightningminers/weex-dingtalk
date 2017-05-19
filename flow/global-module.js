@@ -3,7 +3,7 @@ declare module 'weex-dingtalk-polyfills'{
   declare export default typeof weexInstanceVar;
 }
 
-declare module "weex-dingtalk-require"{
+declare module "weex-dingtalk-runtime"{
   declare var ship:Object;
   declare export default typeof ship;
 }

@@ -5,9 +5,8 @@
 // @flow
 
 import exec from 'weex-dingtalk-exec';
-import { __ship_require__, __ship_define__, __ship_define_remove__ } from './global-api/system-modules.js';
 import EventEmitter from './global-api/EventEmitter.js';
-import parseModules from './global-api/parseModules.js';
+import parseJsApis from './core/parseJsApis.js';
 import weexInstanceVar from 'weex-dingtalk-polyfills';
 
 let platform = weexInstanceVar.env.platform;
@@ -48,10 +47,8 @@ function initDingtalkRequire(cb: Function){
 }
 
 let ship: {
-  getModules: ?Object,
+  apis: ?Object,
   isReady: boolean,
-  define: Function,
-  require: Function,
   runtime: Object,
   init: Function,
   ready: Function,
@@ -61,14 +58,6 @@ let ship: {
 } = {
   getModules: null,
   isReady: false,
-  define: __ship_define__,
-  require: function(id: string) : any{
-    if (!id){
-      return exec;
-    } else {
-      return __ship_require__(id);
-    }
-  },
   runtime: {
     info: rtFunc('info'),
     _interceptBackButton: rtFunc('interceptBackButton'),
@@ -79,9 +68,8 @@ let ship: {
   init: function(){
     initDingtalkRequire(function(response){
       if(response){
-        parseModules(response);
         ship.isReady = true;
-        ship.getModules = response;
+        ship.apis = parseJsApis(response);
         EventEmitter.emit('__ship_ready__');
       }
     });

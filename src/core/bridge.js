@@ -1,15 +1,15 @@
 /* @flow */
 
-import ship from 'weex-dingtalk-require';
+import ship from 'weex-dingtalk-runtime';
 import { extend } from 'shared/util.js';
 import logger from 'shared/logger.js';
 import checkConfigVars from 'shared/checkConfigVars.js';
-import parseJsApis from './parseJsApis.js';
 import permissionJsApis from './permissionJsApis.js';
 
 let dingtalkJsApisConfig: ?Object = null;
 let dingtalkQueue: ?Array<Function> = null;
 let dingtalkErrorCb: ?Function = null;
+let isReady: boolean = false;
 
 function performQueue (){
   if (dingtalkQueue && dingtalkQueue.length > 0){
@@ -22,14 +22,13 @@ function performQueue (){
 
 function initDingtalkSDK() : Object{
   let dingtalk: {
-    isSync: boolean,
     apis: Object,
     config: Function,
     init: Function,
     ready: Function,
-    error: Function
+    error: Function,
+    EventEmitter: Object
   } = {
-    isSync: false,
     apis: {},
     config: function(config: Object){
       if (!config){
@@ -46,8 +45,8 @@ function initDingtalkSDK() : Object{
       dingtalkQueue = [];
       ship.init();
       ship.ready(function(){
-        dingtalk.isSync = true;
-        dingtalk.apis = parseJsApis(ship.getModules ? ship.getModules : {});
+        isReady = ship.isReady;
+        dingtalk.apis = ship.apis ? ship.apis : {};
         performQueue();
       });
     },
@@ -56,7 +55,7 @@ function initDingtalkSDK() : Object{
         logger.warn('callback is undefined');
         return;
       }
-      if (dingtalk.isSync){
+      if (isReady){
         permissionJsApis(cb,dingtalkJsApisConfig,dingtalkErrorCb);
       } else {
         function bufferFunction(cb){
@@ -71,7 +70,8 @@ function initDingtalkSDK() : Object{
       if (typeof cb === 'function'){
         dingtalkErrorCb = cb;
       }
-    }
+    },
+    EventEmitter: ship.EventEmitter
   };
   return dingtalk;
 }

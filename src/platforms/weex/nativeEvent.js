@@ -1,6 +1,6 @@
 /* @flow */
 
-import ship from 'weex-dingtalk-require';
+import ship from 'weex-dingtalk-runtime';
 
 function installNativeEvent(dingtalk:Object){
   dingtalk.on = ship.on;

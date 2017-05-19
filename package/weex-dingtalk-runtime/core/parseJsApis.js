@@ -4,12 +4,44 @@
 
 //@flow
 
-import ship from 'weex-dingtalk-require';
+import exec from 'weex-dingtalk-exec';
+
+function createApi(_name:string,_action:string){
+  return function(params){
+    if (!params) {
+      params = {};
+    }
+    let onSuccess = params.onSuccess;
+    let onFail = params.onFail;
+    delete params.onSuccess;
+    delete params.onFail;
+    delete params.onCancel;
+    const config = {
+      body: {
+        plugin: _name,
+        action: _action,
+        args: params
+      },
+      onSuccess: onSuccess,
+      onFail: onFail
+    };
+    exec(config);
+  }
+}
+
+function createFuns(name:string,funs:Array<any>) : Object{
+  let s = Object.create(null);
+  funs.forEach(function(action){
+    s[action] = createApi(name, action);
+  });
+  return s;
+}
 
 export default function parseJsApis(jsApis: Object) : Object{
-  let apis: Object = {};
+  let apis: Object = Object.create(null);
   for (let name: string in jsApis) {
     let node: Array<string> = name.split('.');
+    let funs: Array<string> = jsApis[name];
     let staging = null;
     let i: number = 0;
     let j: number = node.length;
@@ -18,7 +50,7 @@ export default function parseJsApis(jsApis: Object) : Object{
         if (1 === j) {
           let h = false;
           let p = apis[node[i]];
-          let s = ship.require(name);
+          let s = createFuns(name, funs);
           for (let x in p){
             if (p.hasOwnProperty(x)){
               h = true;
@@ -27,12 +59,10 @@ export default function parseJsApis(jsApis: Object) : Object{
           }
           if (h){
             for (let k in s){
-              if (s.hasOwnProperty(k)){
-                p[k] = s[k];
-              }
+              p[k] = s[k];
             }
           } else {
-            apis[node[i]] = ship.require(name);
+            apis[node[i]] = createFuns(name, funs);
           }
           break;
         }
@@ -47,7 +77,7 @@ export default function parseJsApis(jsApis: Object) : Object{
         continue;
       } else {
         if ((j - 1) === i) {
-          staging[node[i]] = ship.require(name);
+          staging[node[i]] = createFuns(name, funs);
           break;
         }
         if (staging[node[i]]) {
