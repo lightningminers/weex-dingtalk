@@ -503,8 +503,6 @@ function checkConfigVars(config) {
  * Created by xiangwenwen on 2017/3/27.
  */
 
-var runtimePermission = 'runtime.permission';
-
 function permissionJsApis(cb, jsApisConfig, errorCb) {
   if (!jsApisConfig) {
     ship.ready(function () {
@@ -513,7 +511,7 @@ function permissionJsApis(cb, jsApisConfig, errorCb) {
     return;
   }
   ship.ready(function () {
-    var permission = ship.require(runtimePermission);
+    var permission = ship.apis.runtime.permission;
     var apisConf = jsApisConfig ? jsApisConfig : {};
     var errCb = errorCb ? errorCb : null;
     apisConf.onSuccess = function (response) {
