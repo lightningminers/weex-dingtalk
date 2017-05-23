@@ -6,8 +6,6 @@
 
 import ship from 'weex-dingtalk-runtime';
 
-const runtimePermission: string = 'runtime.permission';
-
 export default function permissionJsApis(cb: Function,jsApisConfig:?Object, errorCb: ?Function){
   if (!jsApisConfig){
     ship.ready(function(){
@@ -16,7 +14,7 @@ export default function permissionJsApis(cb: Function,jsApisConfig:?Object, erro
     return;
   }
   ship.ready(function(){
-    const permission = ship.require(runtimePermission);
+    const permission = ship.apis.runtime.permission;
     let apisConf = jsApisConfig ? jsApisConfig : {};
     let errCb = errorCb ? errorCb : null;
     apisConf.onSuccess = function(response){
